@@ -19,6 +19,8 @@ Q3: [NoSuchMethodError: org.apache.flink.table.factories.DynamicTableFactory$Con
 
 Q1: [OverflowError: timeout value is too large](#q1-overflowerror-timeout-value-is-too-large)
 
+Q2: [An error occurred while calling z:org.apache.flink.client.python.PythonEnvUtils.resetCallbackClient](#q2-an-error-occurred-while-calling-zorgapacheflinkclientpythonpythonenvutilsresetcallbackclient)
+
 # JDK issues
 
 ## Q1: InaccessibleObjectException: Unable to make field private final byte[] java.lang.String.value accessible: module java.base does not "opens java.lang" to unnamed module @4e4aea35
@@ -199,3 +201,14 @@ OverflowError: timeout value is too large
 ```
 
 This exception only occurs on Windows. It doesn't affect the execution of PyFlink jobs and so you could ignore it usually. Besides, you could also upgrade PyFlink versions to 1.12.8, 1.13.7, 1.14.4 or 1.15.0 where this issue has been fixed. You could refer to [FLINK-25883]( https://issues.apache.org/jira/browse/FLINK-25883) for more details.
+
+## Q2: An error occurred while calling z:org.apache.flink.client.python.PythonEnvUtils.resetCallbackClient
+
+```
+py4j.protocol.Py4jError: An error occurred while calling z:org.apache.flink.client.python.PythonEnvUtils.resetCallbackClient. Trace:
+org.apache.flink.api.python.shaded.py4j.Py4jException: Method resetCallbackClient([class java.lang.String, class java.lang.Integer]) does not exist
+    at org.apache.flink.api.python.shaded.py4j.reflection.ReflectionEngine.getMethod(ReflectionEngine.java:318)
+    ...
+```
+
+This exception only occurs when the version of the flink-python jar (located in site-packages/pyflink/opt) isn't consistent with PyFlink version. It usually happens when you have tried to install multiple PyFlink versions and something wrong happens which make multiple versions mixed in your environment. You can try to reinstall PyFlink in a clean environment.
