@@ -1,5 +1,17 @@
 # pyflink-faq
-Frequently Asked Questions about PyFlink
+Frequently Asked Questions around PyFlink.
+
+# Frequently Asked Questions
+
+## JDK issues:
+
+Q1: [InaccessibleObjectException: Unable to make field private final byte[] java.lang.String.value accessible: module java.base does not "opens java.lang" to unnamed module @4e4aea35](#q1-inaccessibleobjectexception-unable-to-make-field-private-final-byte-javalangstringvalue-accessible-module-javabase-does-not-opens-javalang-to-unnamed-module-4e4aea35)
+
+## Connector issues:
+
+Q1: [Could not find any factory for identifier 'xxx' that implements 'org.apache.flink.table.factories.DynamicTableFactory' in the classpath](#q1-could-not-find-any-factory-for-identifier-xxx-that-implements-orgapacheflinktablefactoriesdynamictablefactory-in-the-classpath)
+
+Q2: [ClassNotFoundException: com.mysql.cj.jdbc.Driver](#q2-classnotfoundexception-commysqlcjjdbcdriver)
 
 # JDK issues:
 
