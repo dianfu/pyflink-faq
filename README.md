@@ -13,6 +13,8 @@ Q1: [Could not find any factory for identifier 'xxx' that implements 'org.apache
 
 Q2: [ClassNotFoundException: com.mysql.cj.jdbc.Driver](#q2-classnotfoundexception-commysqlcjjdbcdriver)
 
+Q3: [NoSuchMethodError: org.apache.flink.table.factories.DynamicTableFactory$Context.getCatalogTable()Lorg/apache/flink/table/catalog/CatalogTable](#q3-nosuchmethoderror-orgapacheflinktablefactoriesdynamictablefactorycontextgetcatalogtablelorgapacheflinktablecatalogcatalogtable)
+
 # JDK issues:
 
 ## Q1: InaccessibleObjectException: Unable to make field private final byte[] java.lang.String.value accessible: module java.base does not "opens java.lang" to unnamed module @4e4aea35
@@ -164,3 +166,14 @@ Caused by: java.lang.ClassNotFoundException: com.mysql.cj.jdbc.Driver
 ```
 
 This indicates that it the JDBC driver JAR package is missing. It should be noted that the JDBC driver is also required when using JDBC connector. The JAR packages of the JDBC drivers could be found in the [JDBC connector page](https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/table/jdbc/).
+
+## Q3: NoSuchMethodError: org.apache.flink.table.factories.DynamicTableFactory$Context.getCatalogTable()Lorg/apache/flink/table/catalog/CatalogTable
+
+```
+java.lang.NoSuchMethodError: org.apache.flink.table.factories.DynamicTableFactory$Context.getCatalogTable()Lorg/apache/flink/table/catalog/CatalogTable;
+    at org.apache.flink.streaming.connectors.kafka.table.KafkaDynamicTableFactory.createDynamicTableSource(KafkaDynamicTableFactory.java:145)
+    at org.apache.flink.table.factories.FactoryUtil.createTableSource(FactoryUtil.java:147)
+    ... 39 more
+```
+
+It indicates that the version of the Kafka connector JAR package isn't consistent with the PyFlink version. This is the same case for all connectors. You need to make sure that the connector version is consistent with the PyFlink version.
