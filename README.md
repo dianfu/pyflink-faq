@@ -1,7 +1,36 @@
 # pyflink-faq
 Frequently Asked Questions about PyFlink
 
-# Q1: Could not find any factory for identifier 'xxx' that implements 'org.apache.flink.table.factories.DynamicTableFactory' in the classpath.
+# JDK issues:
+
+## Q1: InaccessibleObjectException: Unable to make field private final byte[] java.lang.String.value accessible: module java.base does not "opens java.lang" to unnamed module @4e4aea35
+
+```
+: java.lang.reflect.InaccessibleObjectException: Unable to make field private final byte[] java.lang.String.value accessible: module java.base does not "opens java.lang" to unnamed module @4e4aea35
+	at java.base/java.lang.reflect.AccessibleObject.checkCanSetAccessible(AccessibleObject.java:354)
+	at java.base/java.lang.reflect.AccessibleObject.checkCanSetAccessible(AccessibleObject.java:297)
+	at java.base/java.lang.reflect.Field.checkCanSetAccessible(Field.java:178)
+	at java.base/java.lang.reflect.Field.setAccessible(Field.java:172)
+	at org.apache.flink.api.java.ClosureCleaner.clean(ClosureCleaner.java:106)
+	at org.apache.flink.api.java.ClosureCleaner.clean(ClosureCleaner.java:132)
+	at org.apache.flink.api.java.ClosureCleaner.clean(ClosureCleaner.java:132)
+	at org.apache.flink.api.java.ClosureCleaner.clean(ClosureCleaner.java:132)
+	at org.apache.flink.api.java.ClosureCleaner.clean(ClosureCleaner.java:132)
+	at org.apache.flink.api.java.ClosureCleaner.clean(ClosureCleaner.java:69)
+	at org.apache.flink.streaming.api.environment.StreamExecutionEnvironment.clean(StreamExecutionEnvironment.java:2138)
+	at org.apache.flink.table.planner.plan.nodes.exec.common.CommonExecSink.createSinkFunctionTransformation(CommonExecSink.java:331)
+	at org.apache.flink.table.planner.plan.nodes.exec.common.CommonExecSink.applySinkProvider(CommonExecSink.java:306)
+	at org.apache.flink.table.planner.plan.nodes.exec.common.CommonExecSink.createSinkTransformation(CommonExecSink.java:146)
+	at org.apache.flink.table.planner.plan.nodes.exec.stream.StreamExecSink.translateToPlanInternal(StreamExecSink.java:140)
+	at org.apache.flink.table.planner.plan.nodes.exec.ExecNodeBase.translateToPlan(ExecNodeBase.java:134)
+```
+
+This is an issue around Java 17. It still doesn't support Java 17 in Flink. You can refer to [FLINK-15736]( https://issues.apache.org/jira/browse/FLINK-15736) for more details. To solve this issue, you need to use JDK 1.8 or JDK 11.
+
+
+# Connector issues:
+
+## Q1: Could not find any factory for identifier 'xxx' that implements 'org.apache.flink.table.factories.DynamicTableFactory' in the classpath.
 
 Exception Stack:
 ```
@@ -84,7 +113,7 @@ It reuses the Java connectors implementations in PyFlink and most connectors are
 - It should be noted that you should use the fat JAR which contains all the dependencies. Besides, the version of the connector JAR should be consistent with PyFlink version. 
 - For how to specify the connector JAR in PyFlink jobs, you can refer to the [dependency management](https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/python/dependency_management/#jar-dependencies) page of official PyFlink documentation.
 
-# Q2: ClassNotFoundException: com.mysql.cj.jdbc.Driver
+## Q2: ClassNotFoundException: com.mysql.cj.jdbc.Driver
 
 ```
 py4j.protocol.Py4JJavaError: An error occurred while calling o13.execute.
@@ -123,4 +152,3 @@ Caused by: java.lang.ClassNotFoundException: com.mysql.cj.jdbc.Driver
 ```
 
 This indicates that it the JDBC driver JAR package is missing. It should be noted that the JDBC driver is also required when using JDBC connector. The JAR packages of the JDBC drivers could be found in the [JDBC connector page](https://nightlies.apache.org/flink/flink-docs-stable/docs/connectors/table/jdbc/).
-
