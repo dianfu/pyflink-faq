@@ -21,6 +21,10 @@ Q1: [OverflowError: timeout value is too large](#q1-overflowerror-timeout-value-
 
 Q2: [An error occurred while calling z:org.apache.flink.client.python.PythonEnvUtils.resetCallbackClient](#q2-an-error-occurred-while-calling-zorgapacheflinkclientpythonpythonenvutilsresetcallbackclient)
 
+## Data type issues:
+
+Q1: ['tuple' object has no attribute '_values'](#q1-tuple-object-has-no-attribute-_values)
+
 # JDK issues
 
 ## Q1: InaccessibleObjectException: Unable to make field private final byte[] java.lang.String.value accessible: module java.base does not "opens java.lang" to unnamed module @4e4aea35
@@ -212,3 +216,39 @@ org.apache.flink.api.python.shaded.py4j.Py4jException: Method resetCallbackClien
 ```
 
 This exception only occurs when the version of the flink-python jar (located in site-packages/pyflink/opt) isn't consistent with PyFlink version. It usually happens when you have tried to install multiple PyFlink versions and something wrong happens which make multiple versions mixed in your environment. You can try to reinstall PyFlink in a clean environment.
+
+# Data Types
+
+## Q1: 'tuple' object has no attribute '_values'
+
+```
+Caused by: java.util.concurrent.ExecutionException: java.lang.RuntimeException: Error received from SDK harness for instruction 4: 
+Traceback (most recent call last):  
+File "/usr/local/lib/python3.7/site-packages/apache_beam/runners/worker/sdk_worker.py", line 289, in _execute    response = task()  
+File "/usr/local/lib/python3.7/site-packages/apache_beam/runners/worker/sdk_worker.py", line 362, in <lambda>    lambda:    	 
+	self.create_worker().do_instruction(request), request)  
+File "/usr/local/lib/python3.7/site-packages/apache_beam/runners/worker/sdk_worker.py", line 607, in do_instruction    getattr(request, request_type), 
+	request.instruction_id)  
+File "/usr/local/lib/python3.7/site-packages/apache_beam/runners/worker/sdk_worker.py", line 644, in process_bundle  
+	bundle_processor.process_bundle(instruction_id))  
+File "/usr/local/lib/python3.7/site-packages/apache_beam/runners/worker/bundle_processor.py", line 1000, in process_bundle    element.data)  
+File "/usr/local/lib/python3.7/site-packages/apache_beam/runners/worker/bundle_processor.py", line 228, in process_encoded    self.output(decoded_value)  File "apache_beam/runners/worker/operations.py", line 357, in apache_beam.runners.worker.operations.Operation.output  
+File "apache_beam/runners/worker/operations.py", line 359, in apache_beam.runners.worker.operations.Operation.output  
+File "apache_beam/runners/worker/operations.py", line 221, in apache_beam.runners.worker.operations.SingletonConsumerSet.receive  
+File "pyflink/fn_execution/beam/beam_operations_fast.pyx", line 158, in pyflink.fn_execution.beam.beam_operations_fast.FunctionOperation.process  
+File "pyflink/fn_execution/beam/beam_operations_fast.pyx", line 174, in pyflink.fn_execution.beam.beam_operations_fast.FunctionOperation.process  
+File "pyflink/fn_execution/beam/beam_operations_fast.pyx", line 104, in 
+	pyflink.fn_execution.beam.beam_operations_fast.IntermediateOutputProcessor.process_outputs  
+File "pyflink/fn_execution/beam/beam_operations_fast.pyx", line 158, in pyflink.fn_execution.beam.beam_operations_fast.FunctionOperation.process  
+File "pyflink/fn_execution/beam/beam_operations_fast.pyx", line 174, in pyflink.fn_execution.beam.beam_operations_fast.FunctionOperation.process  
+File "pyflink/fn_execution/beam/beam_operations_fast.pyx", line 92, in 
+	pyflink.fn_execution.beam.beam_operations_fast.NetworkOutputProcessor.process_outputs  
+File "pyflink/fn_execution/beam/beam_coder_impl_fast.pyx", line 101, in 
+	pyflink.fn_execution.beam.beam_coder_impl_fast.FlinkLengthPrefixCoderBeamWrapper.encode_to_stream  
+File "pyflink/fn_execution/coder_impl_fast.pyx", line 271, in pyflink.fn_execution.coder_impl_fast.IterableCoderImpl.encode_to_stream  
+File "pyflink/fn_execution/coder_impl_fast.pyx", line 399, in pyflink.fn_execution.coder_impl_fast.RowCoderImpl.encode_to_stream  
+File "pyflink/fn_execution/coder_impl_fast.pyx", line 389, in pyflink.fn_execution.coder_impl_fast.RowCoderImpl.encode_to_streamAttributeError: 'tuple' 
+	object has no attribute '_values'
+```
+
+This issue is usually caused by the reason that it returns an object other than Row type in a Python user-defined function, however, the return type of the function is declared as Row. Please double check the return value of the Python user-defined function to make sure that the type of the returned value is consitent with the declartion.
