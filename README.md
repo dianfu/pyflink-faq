@@ -3,6 +3,10 @@ Frequently Asked Questions around PyFlink.
 
 # Frequently Asked Questions
 
+## Installation
+
+Q1: [Scala 2.11 VS Scala 2.12](#q1-scala-211-vs-scala-212)
+
 ## JDK issues:
 
 Q1: [InaccessibleObjectException: Unable to make field private final byte[] java.lang.String.value accessible: module java.base does not "opens java.lang" to unnamed module @4e4aea35](#q1-inaccessibleobjectexception-unable-to-make-field-private-final-byte-javalangstringvalue-accessible-module-javabase-does-not-opens-javalang-to-unnamed-module-4e4aea35)
@@ -27,7 +31,13 @@ Q1: ['tuple' object has no attribute '_values'](#q1-tuple-object-has-no-attribut
 
 Q2: [AttributeError: 'int' object has no attribute 'encode'](#q2-attributeerror-int-object-has-no-attribute-encode)
 
-Q3: [Q3: Types.BIG_INT() VS Types.LONG()](#q3-typesbig_int-vs-typeslong)
+Q3: [Types.BIG_INT() VS Types.LONG()](#q3-typesbig_int-vs-typeslong)
+
+# Installation
+
+## Q1: Scala 2.11 VS Scala 2.12
+
+PyFlink only provides official installation packages which contain JAR packages for Scala 2.11 before Flink 1.15 and Scala 2.12 since Flink 1.15+. If you want to use Scala 2.12, you can download the [binary distribution](https://flink.apache.org/downloads.html) of Scala 2.12, unzip it and then set the environment variable *FLINK_HOME* to point to the unzipped directory. This makes it to use the JAR packages specified by *FLINK_HOME* instead of the JAR packages under PyFlink installation package. You can refer to [PyFlink documentation](https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/python/environment_variables/) for more details.
 
 # JDK issues
 
