@@ -25,7 +25,9 @@ Q2: [An error occurred while calling z:org.apache.flink.client.python.PythonEnvU
 
 Q1: ['tuple' object has no attribute '_values'](#q1-tuple-object-has-no-attribute-_values)
 
-Q2: [AttributeError: 'int' object has no attribute 'encode'](#q1-tuple-object-has-no-attribute-_values)
+Q2: [AttributeError: 'int' object has no attribute 'encode'](#q2-attributeerror-int-object-has-no-attribute-encode)
+
+Q3: [Q3: Types.BIG_INT() VS Types.LONG()](#q3-typesbig_int-vs-typeslong)
 
 # JDK issues
 
@@ -269,3 +271,7 @@ AttributeError: 'int' object has no attribute 'encode'
 ```
 
 This reason to this issue is usually that the actual result value of a Python user-defined function isn't consistent with the declared result type of the Python user-defined function.
+
+## Q3: Types.BIG_INT() VS Types.LONG()
+
+It should be noted that Types.BIG_INT() represents type information for the Java BigInteger, while Types.LONG() represents type information for long integer. There are several users are using Types.BIG_INT() for long integer by mistake.
