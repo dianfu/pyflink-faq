@@ -1,4 +1,4 @@
-# Runs PyFlink jobs on Kubernetes
+# Run PyFlink jobs on Kubernetes
 
 In this example, we'd like to give a simple example to show how to run PyFlink jobs on Kubernetes in application mode.
 It has been documented clearly in Flink's [official documentation](https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/resource-providers/native_kubernetes/) about how to work with Kubernetes.
@@ -57,8 +57,6 @@ Note: Make sure to publish the Docker image to a repository which is accessible 
 
 ### Submit PyFlink jobs
 
-#### Submit PyFlink on host machine
-
 1) Download Flink distribution, e.g. for Flink 1.14.4, it's available in https://www.apache.org/dyn/closer.lua/flink/flink-1.14.4/flink-1.14.4-bin-scala_2.11.tgz
 
 2) Extract it
@@ -71,11 +69,12 @@ tar zxvf flink-1.14.4-bin-scala_2.11.tgz
 cd flink-1.14.4
 ./bin/flink run-application \
       --target kubernetes-application \
-      --parallelism 8 \
+      --parallelism 2 \
       -Dkubernetes.cluster-id=word-count \
-      -Dtaskmanager.memory.process.size=4096m \
+      -Djobmanager.memory.process.size=1024m \
+      -Dtaskmanager.memory.process.size=1024m \
       -Dkubernetes.taskmanager.cpu=2 \
-      -Dtaskmanager.numberOfTaskSlots=4 \
+      -Dtaskmanager.numberOfTaskSlots=2 \
       -Dkubernetes.container.image=pyflink_wc:latest \
       -Dkubernetes.rest-service.exposed.type=ClusterIP \
       -py /opt/flink/usrlib/word_count.py
@@ -103,9 +102,8 @@ If everything runs normally, you should see outputs like the following:
 NAMESPACE     NAME                                     READY   STATUS    RESTARTS   AGE
 default       word-count-5f5d44b598-zg5z8              1/1     Running   0          90s
 default       word-count-taskmanager-1-1               0/1     Pending   0          59s
-default       word-count-taskmanager-1-2               0/1     Pending   0          59s
 ```
-Among them, the JobManager runs in the pod `word-count-5f5d44b598-zg5z8 ` and the TaskManager runs in the pods `word-count-taskmanager-1-1` and `word-count-taskmanager-1-2`.
+Among them, the JobManager runs in the pod `word-count-5f5d44b598-zg5z8 ` and the TaskManager runs in the pod `word-count-taskmanager-1-1`.
 
 If the pods are not running normally, you could check the logs of the pods, e.g. checking the log of the JM as following:
 ```shell
@@ -123,16 +121,27 @@ kubectl port-forward service/word-count-rest 8081
 ```
 Then you could access Flink's Web UI of the job via `http://127.0.0.1:8081`.
 
-You could refer to Flink's [official documentation](https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/resource-providers/native_kubernetes/#accessing-flinks-web-ui) on more details.
+You could refer to Flink's [official documentation](https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/resource-providers/native_kubernetes/#accessing-flinks-web-ui) for more details.
 
 ### Cancel the jobs
 
-You could either cancel the job through Flink's Web UI or via CLI commands as following:
+You could either cancel the job through Flink's Web UI or REST API.
 
+## FAQ
+
+### 0/1 nodes are available: 1 Insufficient memory
+
+If the pods of the TaskManagers are always running in `PENDING` status after a long while, you could use the following command to see what happens:
 ```shell
-# list jobs:
-./bin/flink list --target kubernetes-application -Dkubernetes.cluster-id=word-count
-
-# cancel jobs:
-./bin/flink cancel --target kubernetes-application -Dkubernetes.cluster-id=word-count 
+kubectl describe pod word-count-taskmanager-1-1
 ```
+
+If see outputs like the following, it means that the memory of the kubernetes cluster is insufficient:
+```shell
+Events:
+  Type     Reason            Age                From               Message
+  ----     ------            ----               ----               -------
+  Warning  FailedScheduling  16s (x2 over 16s)  default-scheduler  0/1 nodes are available: 1 Insufficient memory.
+```
+
+You need to configure the kubernetes cluster with more memory.
