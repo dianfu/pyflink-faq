@@ -11,12 +11,12 @@ pip install .
 
 - Check that PyFlink is installed successfully
 ```shell
-python -c "import pyflink;import os;print(os.path.dirname(os.path.abspath(pyflink.__file__))+'/log')"
+python -c "import pyflink;import os;print(os.path.dirname(os.path.abspath(pyflink.__file__)))"
 ```
 
 It will print something like the following: 
 ```shell
-/Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.8/site-packages/pyflink/log
+/Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.8/site-packages/pyflink
 ```
 
 Execute the following command:
@@ -53,7 +53,7 @@ drwxr-xr-x  31 dianfu  staff   992B Apr 25 09:26 table
 drwxr-xr-x   6 dianfu  staff   192B Apr 25 09:26 util
 -rw-r--r--   1 dianfu  staff   1.1K Apr 25 09:26 version.py
 ```
-Please checks that the directory `lib`, `opt`, `plugins` should be available.
+Please checks whether the directories `lib`, `opt` are available.
 
 - Execute command `python3 -m unittest test_table_api.TableTests.test_scalar_function` to run the unit test
 

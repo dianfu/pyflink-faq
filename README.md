@@ -7,6 +7,8 @@ Frequently Asked Questions around PyFlink.
 
 Q1: [Scala 2.11 VS Scala 2.12](#q1-scala-211-vs-scala-212)
 
+Q2: [Java gateway process exited before sending its port number](#q2-java-gateway-process-exited-before-sending-its-port-number)
+
 ## JDK issues:
 
 Q1: [InaccessibleObjectException: Unable to make field private final byte[] java.lang.String.value accessible: module java.base does not "opens java.lang" to unnamed module @4e4aea35](#q1-inaccessibleobjectexception-unable-to-make-field-private-final-byte-javalangstringvalue-accessible-module-javabase-does-not-opens-javalang-to-unnamed-module-4e4aea35)
@@ -38,6 +40,87 @@ Q3: [Types.BIG_INT() VS Types.LONG()](#q3-typesbig_int-vs-typeslong)
 ## Q1: Scala 2.11 VS Scala 2.12
 
 PyFlink only provides official installation packages which contain JAR packages for Scala 2.11 before Flink 1.15 and Scala 2.12 since Flink 1.15+. If you want to use Scala 2.12, you can download the [binary distribution](https://flink.apache.org/downloads.html) of Scala 2.12, unzip it and then set the environment variable **FLINK_HOME** to point to the unzipped directory. This makes it use the JAR packages specified by **FLINK_HOME** instead of the JAR packages under PyFlink installation package. You can refer to [PyFlink documentation](https://nightlies.apache.org/flink/flink-docs-stable/docs/dev/python/environment_variables/) for more details.
+
+## Q2: Java gateway process exited before sending its port number
+
+The exception stack is as following:
+```shell
+Traceback (most recent call last):
+  File "/Users/dianfu/code/src/github/pyflink-faq/testing/test_utils.py", line 122, in setUp
+    self.t_env = TableEnvironment.create(EnvironmentSettings.in_streaming_mode())
+  File "/Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.8/site-packages/apache_flink-1.14.4-py3.8-macosx-10.9-x86_64.egg/pyflink/table/environment_settings.py", line 267, in in_streaming_mode
+    get_gateway().jvm.EnvironmentSettings.inStreamingMode())
+  File "/Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.8/site-packages/apache_flink-1.14.4-py3.8-macosx-10.9-x86_64.egg/pyflink/java_gateway.py", line 62, in get_gateway
+    _gateway = launch_gateway()
+  File "/Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.8/site-packages/apache_flink-1.14.4-py3.8-macosx-10.9-x86_64.egg/pyflink/java_gateway.py", line 112, in launch_gateway
+    raise Exception("Java gateway process exited before sending its port number")
+Exception: Java gateway process exited before sending its port number
+```
+
+This issue is usually caused by the reason that PyFlink isn't installed correctly. You can verify whether PyFlink is installed correctly as following:
+
+Execute the following command:
+```
+python -c "import pyflink;import os;print(os.path.dirname(os.path.abspath(pyflink.__file__)))"
+```
+It will print something like the following: 
+```shell
+/Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.8/site-packages/pyflink
+```
+
+Execute the following command:
+```shell
+ls -lh /Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.8/site-packages/pyflink/
+```
+
+The structure should be as following:
+```
+total 136
+-rw-r--r--   1 dianfu  staff   1.3K Apr 25 09:26 README.txt
+-rw-r--r--   1 dianfu  staff   1.9K Apr 25 09:26 __init__.py
+drwxr-xr-x  11 dianfu  staff   352B Apr 25 09:26 __pycache__
+drwxr-xr-x  25 dianfu  staff   800B Apr 25 09:26 bin
+drwxr-xr-x  21 dianfu  staff   672B Apr 25 09:26 common
+drwxr-xr-x  13 dianfu  staff   416B Apr 25 09:26 conf
+drwxr-xr-x  20 dianfu  staff   640B Apr 25 09:26 datastream
+drwxr-xr-x   4 dianfu  staff   128B Apr 25 09:26 examples
+-rw-r--r--   1 dianfu  staff   3.2K Apr 25 09:26 find_flink_home.py
+drwxr-xr-x  25 dianfu  staff   800B Apr 25 09:26 fn_execution
+-rw-r--r--   1 dianfu  staff   9.1K Apr 25 09:26 gen_protos.py
+-rw-r--r--   1 dianfu  staff   7.6K Apr 25 09:26 java_gateway.py
+drwxr-xr-x  11 dianfu  staff   352B Apr 25 09:26 lib
+drwxr-xr-x  28 dianfu  staff   896B Apr 25 09:26 licenses
+drwxr-xr-x   4 dianfu  staff   128B Apr 25 09:26 log
+drwxr-xr-x   5 dianfu  staff   160B Apr 25 09:26 metrics
+drwxr-xr-x   4 dianfu  staff   128B Apr 25 09:26 opt
+drwxr-xr-x  11 dianfu  staff   352B Apr 25 09:26 plugins
+-rw-r--r--   1 dianfu  staff   1.3K Apr 25 09:26 pyflink_callback_server.py
+-rw-r--r--   1 dianfu  staff    12K Apr 25 09:26 pyflink_gateway_server.py
+-rw-r--r--   1 dianfu  staff   5.3K Apr 25 09:26 serializers.py
+-rw-r--r--   1 dianfu  staff   7.9K Apr 25 09:26 shell.py
+drwxr-xr-x  31 dianfu  staff   992B Apr 25 09:26 table
+drwxr-xr-x   6 dianfu  staff   192B Apr 25 09:26 util
+-rw-r--r--   1 dianfu  staff   1.1K Apr 25 09:26 version.py
+```
+
+Please check whether the directories `lib`, `opt` are available. Besides, the jar packages under these directories should be as following:
+```shell
+(.venv) (base) dianfu@B-7174MD6R-1908 testing % ls -lh /Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.8/site-packages/pyflink/lib 
+total 383344
+-rw-r--r--  1 dianfu  staff    84K Apr 25 19:58 flink-csv-1.14.4.jar
+-rw-r--r--  1 dianfu  staff   137M Apr 25 19:58 flink-dist_2.11-1.14.4.jar
+-rw-r--r--  1 dianfu  staff   150K Apr 25 19:58 flink-json-1.14.4.jar
+-rw-r--r--  1 dianfu  staff   7.4M Apr 25 19:58 flink-shaded-zookeeper-3.4.14.jar
+-rw-r--r--  1 dianfu  staff    40M Apr 25 19:58 flink-table_2.11-1.14.4.jar
+-rw-r--r--  1 dianfu  staff   203K Apr 25 19:58 log4j-1.2-api-2.17.1.jar
+-rw-r--r--  1 dianfu  staff   295K Apr 25 19:58 log4j-api-2.17.1.jar
+-rw-r--r--  1 dianfu  staff   1.7M Apr 25 19:58 log4j-core-2.17.1.jar
+-rw-r--r--  1 dianfu  staff    24K Apr 25 19:58 log4j-slf4j-impl-2.17.1.jar
+(.venv) (base) dianfu@B-7174MD6R-1908 testing % ls -lh /Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.8/site-packages/pyflink/opt
+total 76464
+-rw-r--r--  1 dianfu  staff    37M Apr 25 19:58 flink-python_2.11-1.14.4.jar
+-rw-r--r--  1 dianfu  staff   472K Apr 25 19:58 flink-sql-client_2.11-1.14.4.jar
+```
 
 # JDK issues
 
