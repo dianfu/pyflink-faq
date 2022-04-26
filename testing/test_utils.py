@@ -32,6 +32,7 @@ from pyflink.pyflink_gateway_server import on_windows
 from pyflink.table import TableEnvironment, EnvironmentSettings, TableSink
 from pyflink.table.types import _to_java_type
 from pyflink.util import java_utils
+from pyflink.util.java_utils import is_instance_of
 
 
 class PyFlinkTestCase(unittest.TestCase):
@@ -71,8 +72,14 @@ class PyFlinkTestCase(unittest.TestCase):
     @classmethod
     def to_py_list(cls, actual):
         py_list = []
-        for i in range(0, actual.length()):
-            py_list.append(actual.apply(i))
+
+        is_list = is_instance_of(actual, get_gateway().jvm.java.util.List)
+        if is_list:
+            for i in range(0, actual.size()):
+                py_list.append(actual.get(i))
+        else:
+            for i in range(0, actual.length()):
+                py_list.append(actual.apply(i))
         return py_list
 
 

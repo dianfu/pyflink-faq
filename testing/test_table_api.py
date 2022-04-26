@@ -15,7 +15,7 @@
 #  See the License for the specific language governing permissions and
 # limitations under the License.
 ################################################################################
-
+from pyflink.java_gateway import get_gateway
 from pyflink.table import DataTypes
 from pyflink.table.udf import udf
 
@@ -23,6 +23,11 @@ from test_utils import PyFlinkStreamTableTestCase, TestAppendSink, results
 
 
 class TableTests(PyFlinkStreamTableTestCase):
+
+    def get_results(self, table_name):
+        gateway = get_gateway()
+        TestValuesTableFactory = gateway.jvm.org.apache.flink.table.planner.factories.TestValuesTableFactory
+        return TestValuesTableFactory.getResults(table_name)
 
     def test_scalar_function(self):
         add_one = udf(lambda i: i + 1, result_type=DataTypes.BIGINT())
@@ -36,4 +41,22 @@ class TableTests(PyFlinkStreamTableTestCase):
         t.select(t.a, add_one(t.a)) \
             .execute_insert("Results").wait()
         actual = results()
+        self.assert_equals(actual, ["+I[1, 2]", "+I[2, 3]", "+I[3, 4]"])
+
+    def test_sink_ddl(self):
+        add_one = udf(lambda i: i + 1, result_type=DataTypes.BIGINT())
+
+        self.t_env.execute_sql("""
+            CREATE TABLE Results(
+                a BIGINT,
+                b BIGINT
+            ) with (
+                'connector' = 'values'
+            )
+        """)
+
+        t = self.t_env.from_elements([(1, 2, 3), (2, 5, 6), (3, 1, 9)], ['a', 'b', 'c'])
+        t.select(t.a, add_one(t.a)) \
+            .execute_insert("Results").wait()
+        actual = self.get_results("Results")
         self.assert_equals(actual, ["+I[1, 2]", "+I[2, 3]", "+I[3, 4]"])
