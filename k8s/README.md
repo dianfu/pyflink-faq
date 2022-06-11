@@ -83,6 +83,7 @@ cd flink-1.14.4
 Note:
 - More Kubernetes specific configurations could be found [here](https://nightlies.apache.org/flink/flink-docs-stable/docs/deployment/config/#kubernetes)
 - You could override configurations set in `conf/flink-conf.yaml` via `-Dkey=value`
+- Clusterrolebinding for `edit` needs to be configured with `kubectl create clusterrolebinding flink-role-binding-default --clusterrole=edit --serviceaccount=default:default`. If you already have defined clusterrolebinding for a different namespace, edit the yaml to add service account `default:default`
 
 If you see outputs as following, the job should have been submitted successfully:
 ```shell
