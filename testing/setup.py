@@ -22,5 +22,5 @@ from setuptools import setup
 setup(
     name="pyflink_testing",
     version="0.1",
-    install_requires=['apache-flink==1.14.4']
+    install_requires=['apache-flink==1.16.1']
 )

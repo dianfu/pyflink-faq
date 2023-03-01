@@ -15,48 +15,55 @@
 #  See the License for the specific language governing permissions and
 # limitations under the License.
 ################################################################################
-from pyflink.java_gateway import get_gateway
-from pyflink.table import DataTypes
+import uuid
+
+from pyflink.table import DataTypes, TableDescriptor, Schema
 from pyflink.table.udf import udf
 
-from test_utils import PyFlinkStreamTableTestCase, TestAppendSink, results
+from test_utils import PyFlinkStreamTableTestCase
 
 
 class TableTests(PyFlinkStreamTableTestCase):
 
-    def get_results(self, table_name):
-        gateway = get_gateway()
-        TestValuesTableFactory = gateway.jvm.org.apache.flink.table.planner.factories.TestValuesTableFactory
-        return TestValuesTableFactory.getResults(table_name)
+    @staticmethod
+    def generate_table_name(prefix="Table"):
+        return "{0}_{1}".format(prefix, str(uuid.uuid1()).replace("-", "_"))
 
     def test_scalar_function(self):
         add_one = udf(lambda i: i + 1, result_type=DataTypes.BIGINT())
 
-        table_sink = TestAppendSink(
-            ['a', 'b'],
-            [DataTypes.BIGINT(), DataTypes.BIGINT()])
-        self.t_env.register_table_sink("Results", table_sink)
-
-        t = self.t_env.from_elements([(1, 2, 3), (2, 5, 6), (3, 1, 9)], ['a', 'b', 'c'])
-        t.select(t.a, add_one(t.a)) \
-            .execute_insert("Results").wait()
-        actual = results()
-        self.assert_equals(actual, ["+I[1, 2]", "+I[2, 3]", "+I[3, 4]"])
-
-    def test_sink_ddl(self):
-        add_one = udf(lambda i: i + 1, result_type=DataTypes.BIGINT())
-
-        self.t_env.execute_sql("""
-            CREATE TABLE Results(
+        sink_table = self.generate_table_name("Result")
+        self.t_env.execute_sql(f"""
+            CREATE TABLE {sink_table} (
                 a BIGINT,
                 b BIGINT
-            ) with (
-                'connector' = 'values'
+            ) WITH (
+                'connector' = 'test-sink'
             )
         """)
 
         t = self.t_env.from_elements([(1, 2, 3), (2, 5, 6), (3, 1, 9)], ['a', 'b', 'c'])
         t.select(t.a, add_one(t.a)) \
-            .execute_insert("Results").wait()
-        actual = self.get_results("Results")
+            .execute_insert(sink_table).wait()
+        actual = self.get_results()
+        self.assert_equals(actual, ["+I[1, 2]", "+I[2, 3]", "+I[3, 4]"])
+
+    def test_scalar_function_using_table_descriptor(self):
+        add_one = udf(lambda i: i + 1, result_type=DataTypes.BIGINT())
+
+        sink_table = self.generate_table_name("Result")
+        self.t_env.create_table(
+            sink_table,
+            TableDescriptor.for_connector('test-sink')
+                           .schema(Schema
+                                   .new_builder()
+                                   .column('a', DataTypes.BIGINT())
+                                   .column('b', DataTypes.BIGINT())
+                                   .build())
+                           .build())
+
+        t = self.t_env.from_elements([(1, 2, 3), (2, 5, 6), (3, 1, 9)], ['a', 'b', 'c'])
+        t.select(t.a, add_one(t.a)) \
+            .execute_insert(sink_table).wait()
+        actual = self.get_results()
         self.assert_equals(actual, ["+I[1, 2]", "+I[2, 3]", "+I[3, 4]"])

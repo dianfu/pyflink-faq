@@ -23,15 +23,13 @@ import tempfile
 import unittest
 from subprocess import check_output
 
-from py4j.java_gateway import JavaObject, java_import
+from py4j.java_gateway import JavaObject
 from pyflink import pyflink_gateway_server
 from pyflink.datastream import StreamExecutionEnvironment, RuntimeExecutionMode, SinkFunction
 from pyflink.find_flink_home import _find_flink_home
 from pyflink.java_gateway import get_gateway
 from pyflink.pyflink_gateway_server import on_windows
-from pyflink.table import TableEnvironment, EnvironmentSettings, TableSink
-from pyflink.table.types import _to_java_type
-from pyflink.util import java_utils
+from pyflink.table import TableEnvironment, EnvironmentSettings
 from pyflink.util.java_utils import is_instance_of
 
 
@@ -50,7 +48,7 @@ class PyFlinkTestCase(unittest.TestCase):
 
         print("Using %s as FLINK_HOME...", os.environ["FLINK_HOME"])
 
-        testing_jars = [("org.apache.flink", "flink-python_2.11", "1.14.4", "tests")]
+        testing_jars = [("org.apache.flink", "flink-python", "1.16.1", "tests")]
         download_testing_jars(testing_jars)
 
     @classmethod
@@ -113,8 +111,8 @@ def construct_test_classpath():
     return os.path.pathsep.join(test_jars)
 
 
-pyflink_gateway_server.download_apache_avro = lambda *a, **b: ()
 pyflink_gateway_server.construct_test_classpath = construct_test_classpath
+
 
 ###################### Test utilities for Table API & SQL ######################
 
@@ -127,110 +125,16 @@ class PyFlinkStreamTableTestCase(PyFlinkTestCase):
     def setUp(self):
         super(PyFlinkStreamTableTestCase, self).setUp()
         self.t_env = TableEnvironment.create(EnvironmentSettings.in_streaming_mode())
-        testing_jars = [("org.apache.flink", "flink-table-planner_2.11", "1.14.4", "tests")]
-        download_testing_jars(testing_jars)
 
-
-class TestTableSink(TableSink):
-    """
-    Base class for test table sink.
-    """
-
-    _inited = False
-
-    def __init__(self, j_table_sink, field_names, field_types):
+    @staticmethod
+    def get_results():
+        """
+        Retrieves the results from a retract table sink.
+        """
         gateway = get_gateway()
-        j_field_names = java_utils.to_jarray(gateway.jvm.String, field_names)
-        j_field_types = java_utils.to_jarray(
-            gateway.jvm.TypeInformation,
-            [_to_java_type(field_type) for field_type in field_types])
-        j_table_sink = j_table_sink.configure(j_field_names, j_field_types)
-        super(TestTableSink, self).__init__(j_table_sink)
-
-    @classmethod
-    def _ensure_initialized(cls):
-        if TestTableSink._inited:
-            return
-
-        gateway = get_gateway()
-        java_import(gateway.jvm, "org.apache.flink.table.legacyutils.TestAppendSink")
-        java_import(gateway.jvm, "org.apache.flink.table.legacyutils.TestRetractSink")
-        java_import(gateway.jvm, "org.apache.flink.table.legacyutils.TestUpsertSink")
-        java_import(gateway.jvm, "org.apache.flink.table.legacyutils.RowCollector")
-
-        TestTableSink._inited = True
-
-
-class TestAppendSink(TestTableSink):
-    """
-    A test append table sink.
-    """
-
-    def __init__(self, field_names, field_types):
-        TestTableSink._ensure_initialized()
-
-        gateway = get_gateway()
-        super(TestAppendSink, self).__init__(
-            gateway.jvm.TestAppendSink(), field_names, field_types)
-
-
-class TestRetractSink(TestTableSink):
-    """
-    A test retract table sink.
-    """
-
-    def __init__(self, field_names, field_types):
-        TestTableSink._ensure_initialized()
-
-        gateway = get_gateway()
-        super(TestRetractSink, self).__init__(
-            gateway.jvm.TestRetractSink(), field_names, field_types)
-
-
-class TestUpsertSink(TestTableSink):
-    """
-    A test upsert table sink.
-    """
-
-    def __init__(self, field_names, field_types, keys, is_append_only):
-        TestTableSink._ensure_initialized()
-
-        gateway = get_gateway()
-        j_keys = gateway.new_array(gateway.jvm.String, len(keys))
-        for i in range(0, len(keys)):
-            j_keys[i] = keys[i]
-
-        super(TestUpsertSink, self).__init__(
-            gateway.jvm.TestUpsertSink(j_keys, is_append_only), field_names, field_types)
-
-
-def results():
-    """
-    Retrieves the results from an append table sink.
-    """
-    return retract_results()
-
-
-def retract_results():
-    """
-    Retrieves the results from a retract table sink.
-    """
-    gateway = get_gateway()
-    results = gateway.jvm.RowCollector.getAndClearValues()
-    return gateway.jvm.RowCollector.retractResults(results)
-
-
-def upsert_results(keys):
-    """
-    Retrieves the results from an upsert table sink.
-    """
-    gateway = get_gateway()
-    j_keys = gateway.new_array(gateway.jvm.int, len(keys))
-    for i in range(0, len(keys)):
-        j_keys[i] = keys[i]
-
-    results = gateway.jvm.RowCollector.getAndClearValues()
-    return gateway.jvm.RowCollector.upsertResults(results, j_keys)
+        results = gateway.jvm.org.apache.flink.table.utils.TestingSinks.RowCollector.getAndClearValues()
+        return gateway.jvm\
+            .org.apache.flink.table.utils.TestingSinks.RowCollector.retractResults(results)
 
 
 ###################### Test utilities for DataStream API ######################

@@ -60,17 +60,14 @@ Please checks whether the directories `lib`, `opt` are available.
 You will see the following output, which means that the test has run successfully:
 ```
 (.venv) (base) dianfu@B-7174MD6R-1908 testing % python3 -m unittest test_table_api.TableTests.test_scalar_function                            
-Using %s as FLINK_HOME... /Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.8/site-packages/pyflink
-Skipped download /Users/dianfu/code/src/github/pyflink-faq/testing/flink-python_2.11-1.14.4-tests.jar since it already exists.
-/Users/dianfu/miniconda3/lib/python3.8/subprocess.py:946: ResourceWarning: subprocess 71018 is still running
-  _warn("subprocess %s is still running" % self.pid,
+Using %s as FLINK_HOME... /Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.7/site-packages/pyflink
+Skipped download /Users/dianfu/code/src/github/pyflink-faq/testing/flink-python-1.16.1-tests.jar since it already exists.
+/Users/dianfu/opt/miniconda3/lib/python3.7/subprocess.py:883: ResourceWarning: subprocess 27896 is still running
+  ResourceWarning, source=self)
 ResourceWarning: Enable tracemalloc to get the object allocation traceback
-Downloading jar org.apache.flink:flink-table-planner_2.11:1.14.4:jar:tests
-/Users/dianfu/code/src/github/pyflink-faq/testing/.venv/lib/python3.8/site-packages/pyflink/table/table_environment.py:538: DeprecationWarning: Deprecated in 1.10. Use create_table instead.
-  warnings.warn("Deprecated in 1.10. Use create_table instead.", DeprecationWarning)
 .
 ----------------------------------------------------------------------
-Ran 1 test in 32.746s
+Ran 1 test in 15.313s
 
 OK
 ```
